@@ -33,6 +33,13 @@ int main() {
     insertMenu(menuTable, 103, "Ayam Bakar Taliwang", 35000);
     insertMenu(menuTable, 201, "Es Teh Manis", 5000);
     insertMenu(menuTable, 202, "Jus Alpukat Kocok", 15000);
+
+    struct TrieNode* trieRoot = createTrieNode();
+    insertTrie(trieRoot, "Nasi Goreng Spesial");
+    insertTrie(trieRoot, "Mie Goreng Ayam");
+    insertTrie(trieRoot, "Ayam Bakar Taliwang");
+    insertTrie(trieRoot, "Es Teh Manis");
+    insertTrie(trieRoot, "Jus Alpukat Kocok");
     
     int mainChoice = 0;
     
@@ -113,3 +120,11 @@ int main() {
                 } while (crudChoice != 5);
                 break;
             }
+
+            case 2:
+                clearScreen();
+                printf("=== CARI MENU AUTO-COMPLETE ===\n");
+                printf("[Fitur ini akan menggunakan fungsi dari trie.h]\n");
+                printf("Fitur ini sedang disiapkan...\n");
+                pressEnterToContinue();
+                break;

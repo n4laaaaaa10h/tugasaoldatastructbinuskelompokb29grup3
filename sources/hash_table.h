@@ -20,7 +20,6 @@ struct MenuHashTable {
     struct Menu* table[TABLE_SIZE];
 };
 
-// Fungsi untuk membuat Hash Table baru
 struct MenuHashTable* createHashTable() {
     struct MenuHashTable* ht = (struct MenuHashTable*)malloc(sizeof(struct MenuHashTable));
     for (int i = 0; i < TABLE_SIZE; i++) {
@@ -29,12 +28,10 @@ struct MenuHashTable* createHashTable() {
     return ht;
 }
 
-// Fungsi Hash sederhana menggunakan ID Menu
 int hashFunction(int id) {
     return id % TABLE_SIZE;
 }
 
-// 1. CREATE: Tambah Menu Baru (Insert)
 void insertMenu(struct MenuHashTable* ht, int id, const char* name, int price) {
     int index = hashFunction(id);
     
@@ -45,18 +42,15 @@ void insertMenu(struct MenuHashTable* ht, int id, const char* name, int price) {
     newMenu->price = price;
     newMenu->next = NULL;
 
-    // Jika index masih kosong
     if (ht->table[index] == NULL) {
         ht->table[index] = newMenu;
     } else {
-        // Jika terjadi collision, gunakan chaining (tambahkan di depan / head)
         newMenu->next = ht->table[index];
         ht->table[index] = newMenu;
     }
     printf("Menu '%s' berhasil ditambahkan!\n", name);
 }
 
-// 2. READ: Tampilkan Semua Menu (View)
 void viewAllMenus(struct MenuHashTable* ht) {
     printf("\n=== DAFTAR MENU RESTORAN ===\n");
     printf("%-5s | %-25s | %-10s\n", "ID", "Nama Menu", "Harga");
@@ -77,7 +71,6 @@ void viewAllMenus(struct MenuHashTable* ht) {
     printf("---------------------------------------------\n");
 }
 
-// READ (Spesifik): Cari Menu berdasarkan ID
 struct Menu* searchMenu(struct MenuHashTable* ht, int id) {
     int index = hashFunction(id);
     struct Menu* curr = ht->table[index];
@@ -91,7 +84,6 @@ struct Menu* searchMenu(struct MenuHashTable* ht, int id) {
     return NULL; // Menu tidak ditemukan
 }
 
-// 3. UPDATE: Ubah Harga atau Nama Menu
 bool updateMenu(struct MenuHashTable* ht, int id, const char* newName, int newPrice) {
     struct Menu* target = searchMenu(ht, id);
     if (target != NULL) {
@@ -102,7 +94,6 @@ bool updateMenu(struct MenuHashTable* ht, int id, const char* newName, int newPr
     return false; // Gagal update karena ID tidak ada
 }
 
-// 4. DELETE: Hapus Menu dari Daftar
 bool deleteMenu(struct MenuHashTable* ht, int id) {
     int index = hashFunction(id);
     struct Menu* curr = ht->table[index];
@@ -110,7 +101,6 @@ bool deleteMenu(struct MenuHashTable* ht, int id) {
     
     while (curr != NULL) {
         if (curr->id == id) {
-            // Jika node yang dihapus ada di depan (head)
             if (prev == NULL) {
                 ht->table[index] = curr->next;
             } else {
