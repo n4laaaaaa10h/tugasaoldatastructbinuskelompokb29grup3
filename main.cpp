@@ -124,7 +124,125 @@ int main() {
             case 2:
                 clearScreen();
                 printf("=== CARI MENU AUTO-COMPLETE ===\n");
-                printf("[Fitur ini akan menggunakan fungsi dari trie.h]\n");
-                printf("Fitur ini sedang disiapkan...\n");
+                char query[50];
+                printf("Masukkan kata kunci untuk mencari menu: ");
+                getchar();
+                fgets(query, sizeof(query), stdin);
+                query[strcspn(query, "\n")] = 0; // hapus newline
+
+                printf("Hasil pencarian untuk '%s':\n", query);
+                int found = printAutoSuggest(trieRoot, query);
+                if (!found) {
+                    printf("Tidak ada menu yang cocok dengan '%s'.\n", query);
+                }
                 pressEnterToContinue();
                 break;
+
+            case 3:
+            struct OrderCart* cart = createCart();
+            struc UndoStack* undoStack = createUndoStack();
+            int txChoice;
+            do {
+                clearScreen();
+                printf("=== TRANSAKSI BARU / KERANJANG ===\n");
+                printf("1. Tambah Item ke Keranjang\n");
+                printf("2. Lihat Keranjang\n");
+                printf("3. Hapus Item dari Keranjang\n");
+                printf("4. Undo Aksi Terakhir\n");
+                printf("5. Checkout / Selesaikan Transaksi\n");
+                printf("6. Kembali ke Menu Utama\n");
+                printf("Pilih opsi (1-6): ");
+                scanf("%d", &txChoice);
+                
+                if (txChoice == 1) {
+                    int id, quantity;
+                    printf("Masukkan ID Menu yang ingin ditambahkan: "); scanf("%d", &id);
+                    struct Menu* menuItem = searchMenu(menuTable, id);
+                    if (menuItem != NULL) {
+                        printf("Masukkan jumlah: "); scanf("%d", &quantity);
+                        addToCart(cart, menuItem, quantity);
+                        pushUndo(undoStack, "add", menuItem, quantity);
+                        printf("%d x %s berhasil ditambahkan ke keranjang.\n", quantity, menuItem->name);
+                    } else {
+                        printf("Menu dengan ID %d tidak ditemukan.\n", id);
+                    }
+                    pressEnterToContinue();
+                } 
+                else if (txChoice == 2) {
+                    viewCart(cart);
+                    pressEnterToContinue();
+                } 
+                else if (txChoice == 3) {
+                    int id;
+                    printf("Masukkan ID Menu yang ingin dihapus dari keranjang: "); scanf("%d", &id);
+                    struct CartItem* removedItem = removeFromCart(cart, id);
+                    if (removedItem != NULL) {
+                        pushUndo(undoStack, "remove", removedItem->menu, removedItem->quantity);
+                        printf("%s berhasil dihapus dari keranjang.\n", removedItem->menu->name);
+                    } else {
+                        printf("Item dengan ID %d tidak ditemukan di keranjang.\n", id);
+                    }
+                    pressEnterToContinue();
+                } 
+                else if (txChoice == 4) {
+                    if (undoStack->top != -1) {
+                        struct UndoAction* lastAction = popUndo(undoStack);
+                        if (strcmp(lastAction->actionType, "add") == 0) {
+                            removeFromCart(cart, lastAction->menu->id);
+                            printf("Undo: %d x %s dihapus dari keranjang.\n", lastAction->quantity, lastAction->menu->name);
+                        } else if (strcmp(lastAction->actionType, "remove") == 0) {
+                            addToCart(cart, lastAction->menu, lastAction->quantity);
+                            printf("Undo: %d x %s ditambahkan kembali ke keranjang.\n", lastAction->quantity, lastAction->menu->name);
+                        }
+                        free(lastAction);
+                    } else {
+                        printf("Tidak ada aksi untuk di-undo.\n");
+                    }
+                    pressEnterToContinue();
+                }
+                else if (txChoice == 5) {
+                    if (cart->head == NULL) {
+                        printf("Keranjang kosong! Tambahkan item sebelum checkout.\n");
+                    } else {
+                        int total = calculateTotal(cart);
+                        printf("Total pembayaran: Rp %d\n", total);
+                        printf("Transaksi selesai! Terima kasih.\n");
+                        clearCart(cart);
+                        clearUndoStack(undoStack);
+                    }
+                    pressEnterToContinue();
+                }
+            } while (txChoice != 6);
+                break;
+
+            case 4: {
+                int kitchenChoice;
+                do {
+                    clearScreen();
+                    printf("=== ANTREAN PESANAN DAPUR ===\n");
+
+                    viewKitchenQueue(kitchenQueue);
+
+                    printf("1. Lihat Antrean Pesanan\n");
+                    printf("2. Proses Pesanan Berikutnya\n");
+                    printf("3. Kembali ke Menu Utama\n");
+                    printf("Pilih opsi (1-3): ");
+                    scanf("%d", &kitchenChoice);
+
+                    if (kitchenChoice == 1) {
+                        viewKitchenQueue(kitchenQueue);
+                        pressEnterToContinue();
+                    } else if (kitchenChoice == 2) {
+                        struct Order* nextOrder = dequeueOrder(kitchenQueue);
+                        if (nextOrder != NULL) {
+                            printf("Memproses pesanan untuk meja %d...\n", nextOrder->tableNumber);
+                            free(nextOrder);
+                        } else {
+                            printf("Tidak ada pesanan dalam antrean.\n");
+                        }
+                        pressEnterToContinue();
+                    }
+                } while (kitchenChoice != 3);
+                break;
+            }
+            case 5:
