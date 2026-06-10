@@ -45,16 +45,13 @@ int main() {
     
     do {
         clearScreen();
-        printf("===========================================\n");
-        printf("   SISTEM MANAJEMEN KASIR - RESTORAN ANOMALI   \n");
-        printf("===========================================\n");
-        printf("1. Manajemen Master Menu (CRUD - Hash Table)\n");
+        printf("SISTEM MANAJEMEN KASIR - RESTORAN ANOMALI\n");
+        printf("1. Manajemen Master Menu\n");// (CRUD - Hash Table)
         printf("2. Cari Menu (Auto-complete - Trie)\n");
-        printf("3. Transaksi Baru / Keranjang (Linked List & Stack)\n");
-        printf("4. Antrean Pesanan Dapur (Queue)\n");
-        printf("5. Manajemen Data Kasir (BST)\n");
+        printf("3. Transaksi Baru / Keranjang\n");// (Linked List & Stack)
+        printf("4. Antrean Pesanan Dapur\n");// (Queue)
+        printf("5. Manajemen Data Kasir\n");// (BST)
         printf("6. Keluar Aplikasi\n");
-        printf("===========================================\n");
         printf("Pilih menu (1-6): ");
         scanf("%d", &mainChoice);
         
@@ -123,7 +120,7 @@ int main() {
 
             case 2:
                 clearScreen();
-                printf("=== CARI MENU AUTO-COMPLETE ===\n");
+                printf("CARI MENU AUTO-COMPLETE\n");
                 char query[50];
                 printf("Masukkan kata kunci untuk mencari menu: ");
                 getchar();
@@ -144,7 +141,7 @@ int main() {
             int txChoice;
             do {
                 clearScreen();
-                printf("=== TRANSAKSI BARU / KERANJANG ===\n");
+                printf("TRANSAKSI BARU / KERANJANG\n");
                 printf("1. Tambah Item ke Keranjang\n");
                 printf("2. Lihat Keranjang\n");
                 printf("3. Hapus Item dari Keranjang\n");
@@ -219,7 +216,7 @@ int main() {
                 int kitchenChoice;
                 do {
                     clearScreen();
-                    printf("=== ANTREAN PESANAN DAPUR ===\n");
+                    printf("\n");
 
                     viewKitchenQueue(kitchenQueue);
 
@@ -245,4 +242,85 @@ int main() {
                 } while (kitchenChoice != 3);
                 break;
             }
-            case 5:
+            case 5: {
+                int bstChoice;
+                do {
+                    clearScreen();
+                    printf("MANAJEMEN DATA KASIR\n");
+                    printf("1. Registrasi Kasir Baru (Insert BST)\n");
+                    printf("2. Cari Data Kasir Berdasarkan ID (Search BST)\n");
+                    printf("3. Tampilkan Semua Kasir Terurut (In-order Traversal)\n");
+                    printf("4. Kembali ke Menu Utama\n");
+                    printf("Pilih opsi (1-4): ");
+                    scanf("%d", &bstChoice);
+                    
+                    if (bstChoice == 1) {
+                        int id;
+                        char name[50], shift[20];
+                        printf("Masukkan ID Kasir Baru (Angka): ");
+                        scanf("%d", &id);
+                        getchar(); // Bersihkan buffer newline
+                        
+                        printf("Masukkan Nama Kasir       : ");
+                        fgets(name, sizeof(name), stdin);
+                        name[strcspn(name, "\n")] = 0; // Hapus newline
+                        
+                        printf("Masukkan Shift (Pagi/Siang/Malam): ");
+                        fgets(shift, sizeof(shift), stdin);
+                        shift[strcspn(shift, "\n")] = 0;
+                        
+                        bstRoot = insertCashier(bstRoot, id, name, shift);
+                        printf("\n[SUKSES] Kasir '%s' berhasil terdaftar di sistem!\n", name);
+                        pressEnterToContinue();
+                    }
+                    else if (bstChoice == 2) {
+                        int id;
+                        printf("Masukkan ID Kasir yang dicari: ");
+                        scanf("%d", &id);
+                        
+                        struct Cashier* found = searchCashier(bstRoot, id);
+                        if (found != NULL) {
+                            printf("\n--- DATA KASIR DITEMUKAN ---\n");
+                            printf("ID Kasir : %d\n", found->cashierId);
+                            printf("Nama     : %s\n", found->name);
+                            printf("Shift    : %s\n", found->shift);
+                        } else {
+                            printf("\n[GAGAL] Kasir dengan ID %d tidak ditemukan.\n", id);
+                        }
+                        pressEnterToContinue();
+                    }
+                    else if (bstChoice == 3) {
+                        printf("\n=== DAFTAR KASIR (TERURUT BERDASARKAN ID) ===\n");
+                        printf("%-10s | %-25s | %-15s\n", "ID Kasir", "Nama Kasir", "Shift");
+                        printf("--------------------------------------------------------\n");
+                        
+                        printInOrder(bstRoot); 
+                        
+                        printf("--------------------------------------------------------\n");
+                        pressEnterToContinue();
+                    }
+                    else if (bstChoice == 4) {
+                        printf("\nKembali ke Menu Utama.\n");
+                        pressEnterToContinue();
+                    }
+                    else {
+                        printf("\nPilihan tidak valid!\n");
+                        pressEnterToContinue();
+                    }
+                } while (bstChoice != 4);
+                break;
+            }
+            
+            case 6:
+                printf("\nKeluar dari aplikasi kasir. Terima kasih!\n");
+                break;
+                
+            default:
+                printf("\nPilihan tidak valid! Silakan masukkan angka 1-6.\n");
+                pressEnterToContinue();
+                break;
+        }
+    } while (mainChoice != 6);
+    
+    return 0;
+} 
