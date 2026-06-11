@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "hash_table.h"
-// #include "trie.h"
+#include "trie.h"
 // #include "linked_list.h"
 // #include "stack.h"
 // #include "queue.h"
