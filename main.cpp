@@ -3,14 +3,15 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Menghubungkan ke semua file header struktur data kelompok
 #include "hash_table.h"
 #include "trie.h"
-// #include "linked_list.h"
-// #include "stack.h"
-// #include "queue.h"
-// #include "bst.h"
+#include "linked_list.h"
+#include "stack.h"
+#include "queue.h"
+#include "bst.h"
 
-// function livesaver sumpah
+// Fungsi pembantu untuk membersihkan layar console
 void clearScreen() {
     #ifdef _WIN32
         system("cls");
@@ -19,14 +20,15 @@ void clearScreen() {
     #endif
 }
 
+// Fungsi untuk menekan enter sebelum lanjut
 void pressEnterToContinue() {
     printf("\nTekan Enter untuk melanjutkan...");
-    getchar(); 
-    getchar(); 
+    getchar(); // Menangkap karakter newline sisa
+    getchar(); // Menunggu input enter dari user
 }
 
 int main() {
-    ///ini teh template doang.
+    // 1. Inisialisasi & Isi Data Master Menu (Hash Table)
     struct MenuHashTable* menuTable = createHashTable();
     insertMenu(menuTable, 101, "Nasi Goreng Spesial", 25000);
     insertMenu(menuTable, 102, "Mie Goreng Ayam", 22000);
@@ -34,33 +36,46 @@ int main() {
     insertMenu(menuTable, 201, "Es Teh Manis", 5000);
     insertMenu(menuTable, 202, "Jus Alpukat Kocok", 15000);
 
+    // 2. Inisialisasi & Isi Data Pencarian (Trie)
     struct TrieNode* trieRoot = createTrieNode();
     insertTrie(trieRoot, "Nasi Goreng Spesial");
     insertTrie(trieRoot, "Mie Goreng Ayam");
     insertTrie(trieRoot, "Ayam Bakar Taliwang");
     insertTrie(trieRoot, "Es Teh Manis");
     insertTrie(trieRoot, "Jus Alpukat Kocok");
-    
+
+    // 3. Inisialisasi Antrean Dapur (Queue)
+    struct KitchenQueue* kitchenQueue = createQueue();
+
+    // 4. Inisialisasi & Isi Data Kasir (BST)
+    Node* bstRoot = NULL;
+    bstRoot = insertBST(bstRoot, 201, "Andi Wijaya", "Makanan", 25000);
+    bstRoot = insertBST(bstRoot, 105, "Siti Rahma", "Minuman", 5000);
+    bstRoot = insertBST(bstRoot, 304, "Budi Santoso", "Makanan", 35000);
+
     int mainChoice = 0;
-    
+
     do {
         clearScreen();
-        printf("SISTEM MANAJEMEN KASIR - RESTORAN ANOMALI\n");
-        printf("1. Manajemen Master Menu\n");// (CRUD - Hash Table)
+        printf("===========================================\n");
+        printf("   SISTEM MANAJEMEN KASIR - RESTORAN XYZ   \n");
+        printf("===========================================\n");
+        printf("1. Manajemen Master Menu (CRUD - Hash Table)\n");
         printf("2. Cari Menu (Auto-complete - Trie)\n");
-        printf("3. Transaksi Baru / Keranjang\n");// (Linked List & Stack)
-        printf("4. Antrean Pesanan Dapur\n");// (Queue)
-        printf("5. Manajemen Data Kasir\n");// (BST)
+        printf("3. Transaksi Baru / Keranjang (Linked List & Stack)\n");
+        printf("4. Antrean Pesanan Dapur (Queue)\n");
+        printf("5. Manajemen Data Menu Pohon (BST)\n");
         printf("6. Keluar Aplikasi\n");
+        printf("===========================================\n");
         printf("Pilih menu (1-6): ");
         scanf("%d", &mainChoice);
-        
+
         switch (mainChoice) {
-            case 1: {
+            case 1: { // Sub-menu CRUD Hash Table
                 int crudChoice;
                 do {
                     clearScreen();
-                    printf("=== MANAJEMEN MASTER MENU ===\n");
+                    printf("=== MANAJEMEN MASTER MENU (HASH TABLE) ===\n");
                     printf("1. Tambah Menu Baru (Insert)\n");
                     printf("2. Lihat Semua Menu (Read)\n");
                     printf("3. Update Data Menu (Update)\n");
@@ -68,17 +83,18 @@ int main() {
                     printf("5. Kembali ke Menu Utama\n");
                     printf("Pilih opsi (1-5): ");
                     scanf("%d", &crudChoice);
-                    
+
                     if (crudChoice == 1) {
                         int id, price;
                         char name[50];
                         printf("Masukkan ID Menu baru (Angka): "); scanf("%d", &id);
-                        getchar();
+                        getchar(); // bersihkan buffer newline
                         printf("Masukkan Nama Menu: ");  fgets(name, sizeof(name), stdin);
                         name[strcspn(name, "\n")] = 0; // hapus newline di akhir string
                         printf("Masukkan Harga Menu: "); scanf("%d", &price);
-                        
+
                         insertMenu(menuTable, id, name, price);
+                        insertTrie(trieRoot, name); // Otomatis daftarkan ke trie autocomplete juga
                         pressEnterToContinue();
                     } 
                     else if (crudChoice == 2) {
@@ -96,7 +112,7 @@ int main() {
                             printf("Masukkan Nama Baru: "); fgets(newName, sizeof(newName), stdin);
                             newName[strcspn(newName, "\n")] = 0;
                             printf("Masukkan Harga Baru: "); scanf("%d", &newPrice);
-                            
+
                             updateMenu(menuTable, id, newName, newPrice);
                             printf("Menu berhasil diperbarui!\n");
                         } else {
@@ -118,185 +134,237 @@ int main() {
                 break;
             }
 
-            case 2:
+            case 2: {
                 clearScreen();
-                printf("CARI MENU AUTO-COMPLETE\n");
+                printf("=== CARI MENU AUTO-COMPLETE (TRIE) ===\n");
                 char query[50];
-                printf("Masukkan kata kunci untuk mencari menu: ");
-                getchar();
+                printf("Ketik awal nama menu yang dicari: ");
+                getchar(); // Bersihkan buffer
                 fgets(query, sizeof(query), stdin);
-                query[strcspn(query, "\n")] = 0; // hapus newline
+                query[strcspn(query, "\n")] = 0; // Hapus newline
 
-                printf("Hasil pencarian untuk '%s':\n", query);
-                int found = printAutoSuggest(trieRoot, query);
+                printf("\nRekomendasi menu untuk '%s':\n", query);
+                // SINKRONISASI: Menggunakan printAutoSuggestions yang didefinisikan di trie.h
+                int found = printAutoSuggestions(trieRoot, query); 
                 if (!found) {
-                    printf("Tidak ada menu yang cocok dengan '%s'.\n", query);
+                    printf("Tidak ada menu dengan awalan tersebut.\n");
                 }
                 pressEnterToContinue();
                 break;
+            }
 
-            case 3:
-            struct OrderCart* cart = createCart();
-            struc UndoStack* undoStack = createUndoStack();
-            int txChoice;
-            do {
-                clearScreen();
-                printf("TRANSAKSI BARU / KERANJANG\n");
-                printf("1. Tambah Item ke Keranjang\n");
-                printf("2. Lihat Keranjang\n");
-                printf("3. Hapus Item dari Keranjang\n");
-                printf("4. Undo Aksi Terakhir\n");
-                printf("5. Checkout / Selesaikan Transaksi\n");
-                printf("6. Kembali ke Menu Utama\n");
-                printf("Pilih opsi (1-6): ");
-                scanf("%d", &txChoice);
-                
-                if (txChoice == 1) {
-                    int id, quantity;
-                    printf("Masukkan ID Menu yang ingin ditambahkan: "); scanf("%d", &id);
-                    struct Menu* menuItem = searchMenu(menuTable, id);
-                    if (menuItem != NULL) {
-                        printf("Masukkan jumlah: "); scanf("%d", &quantity);
-                        addToCart(cart, menuItem, quantity);
-                        pushUndo(undoStack, "add", menuItem, quantity);
-                        printf("%d x %s berhasil ditambahkan ke keranjang.\n", quantity, menuItem->name);
-                    } else {
-                        printf("Menu dengan ID %d tidak ditemukan.\n", id);
-                    }
-                    pressEnterToContinue();
-                } 
-                else if (txChoice == 2) {
-                    viewCart(cart);
-                    pressEnterToContinue();
-                } 
-                else if (txChoice == 3) {
-                    int id;
-                    printf("Masukkan ID Menu yang ingin dihapus dari keranjang: "); scanf("%d", &id);
-                    struct CartItem* removedItem = removeFromCart(cart, id);
-                    if (removedItem != NULL) {
-                        pushUndo(undoStack, "remove", removedItem->menu, removedItem->quantity);
-                        printf("%s berhasil dihapus dari keranjang.\n", removedItem->menu->name);
-                    } else {
-                        printf("Item dengan ID %d tidak ditemukan di keranjang.\n", id);
-                    }
-                    pressEnterToContinue();
-                } 
-                else if (txChoice == 4) {
-                    if (undoStack->top != -1) {
-                        struct UndoAction* lastAction = popUndo(undoStack);
-                        if (strcmp(lastAction->actionType, "add") == 0) {
-                            removeFromCart(cart, lastAction->menu->id);
-                            printf("Undo: %d x %s dihapus dari keranjang.\n", lastAction->quantity, lastAction->menu->name);
-                        } else if (strcmp(lastAction->actionType, "remove") == 0) {
-                            addToCart(cart, lastAction->menu, lastAction->quantity);
-                            printf("Undo: %d x %s ditambahkan kembali ke keranjang.\n", lastAction->quantity, lastAction->menu->name);
+            case 3: { // TRANSAKSI BARU & KERANJANG (LINKED LIST & STACK)
+                struct OrderCart* cart = createCart();
+                struct UndoStack* undoStack = createStack();
+                int txChoice;
+
+                do {
+                    clearScreen();
+                    printf("===========================================\n");
+                    printf("       MODE TRANSAKSI / KASIR BARU         \n");
+                    printf("===========================================\n");
+                    viewCart(cart); 
+
+                    printf("\nOpsi Transaksi:\n");
+                    printf("1. Tambah Menu ke Keranjang (Insert - Linked List)\n");
+                    printf("2. Hapus Menu dari Keranjang (Delete - Linked List)\n");
+                    printf("3. BATALKAN Input Terakhir (Undo - Stack)\n");
+                    printf("4. Selesaikan Pembayaran & Kirim ke Dapur\n");
+                    printf("5. Batalkan Seluruh Transaksi & Kembali\n");
+                    printf("===========================================\n");
+                    printf("Pilih opsi (1-5): ");
+                    scanf("%d", &txChoice);
+
+                    if (txChoice == 1) {
+                        int id, qty;
+                        viewAllMenus(menuTable); 
+                        printf("Masukkan ID Menu yang dipesan: ");
+                        scanf("%d", &id);
+
+                        struct Menu* targetMenu = searchMenu(menuTable, id);
+                        if (targetMenu != NULL) {
+                            printf("Masukkan Jumlah (Quantity): ");
+                            scanf("%d", &qty);
+                            if (qty > 0) {
+                                addToCart(cart, targetMenu, qty);
+                                pushUndo(undoStack, id, qty); 
+                            } else {
+                                printf("Jumlah pesanan harus lebih dari 0!\n");
+                            }
+                        } else {
+                            printf("ID Menu tidak ditemukan di daftar master menu.\n");
                         }
-                        free(lastAction);
-                    } else {
-                        printf("Tidak ada aksi untuk di-undo.\n");
+                        pressEnterToContinue();
                     }
-                    pressEnterToContinue();
-                }
-                else if (txChoice == 5) {
-                    if (cart->head == NULL) {
-                        printf("Keranjang kosong! Tambahkan item sebelum checkout.\n");
-                    } else {
-                        int total = calculateTotal(cart);
-                        printf("Total pembayaran: Rp %d\n", total);
-                        printf("Transaksi selesai! Terima kasih.\n");
-                        clearCart(cart);
-                        clearUndoStack(undoStack);
+                    else if (txChoice == 2) {
+                        if (cart->head == NULL) {
+                            printf("Keranjang masih kosong, tidak ada yang bisa dihapus.\n");
+                        } else {
+                            int id;
+                            printf("Masukkan ID Menu yang ingin didelete dari keranjang: ");
+                            scanf("%d", &id);
+                            removeFromCart(cart, id);
+                        }
+                        pressEnterToContinue();
                     }
-                    pressEnterToContinue();
-                }
-            } while (txChoice != 6);
-                break;
+                    else if (txChoice == 3) {
+                        struct UndoAction lastAction = popUndo(undoStack);
+                        if (lastAction.menuId != -1) {
+                            struct Menu* menuToUndo = searchMenu(menuTable, lastAction.menuId);
+                            if (menuToUndo != NULL) {
+                                removeFromCart(cart, lastAction.menuId);
+                                printf("-> BERHASIL UNDO: Input '%d x %s' telah dibatalkan!\n", 
+                                       lastAction.quantity, menuToUndo->name);
+                            }
+                        } else {
+                            printf("Tidak ada aksi input yang bisa di-Undo.\n");
+                        }
+                        pressEnterToContinue();
+                    }
+                    else if (txChoice == 4) {
+                        if (cart->head == NULL) {
+                            printf("Gagal bayar! Keranjang masih kosong.\n");
+                            pressEnterToContinue();
+                        } else {
+                            clearScreen();
+                            printf("===========================================\n");
+                            printf("             RINGKASAN PEMBAYARAN          \n");
+                            printf("===========================================\n");
+                            viewCart(cart);
 
-            case 4: {
+                            int bayar;
+                            printf("\nTotal yang harus dibayar: Rp %d\n", cart->totalPrice);
+                            printf("Masukkan Uang Pembayaran : Rp ");
+                            scanf("%d", &bayar);
+
+                            if (bayar >= cart->totalPrice) {
+                                printf("Kembalian                : Rp %d\n", bayar - cart->totalPrice);
+                                printf("\n[SUKSES] Pembayaran Berhasil!\n");
+                                printf("Pesanan secara otomatis dicetak dan dikirim ke Antrean Dapur.\n");
+
+                                // Mengirim data ke antrean dapur (queue.h)
+                                enqueueOrder(kitchenQueue, cart); 
+
+                                clearCart(cart);
+                                clearStack(undoStack);
+                                txChoice = 5; 
+                            } else {
+                                printf("[GAGAL] Uang yang dibayarkan kurang Rp %d. Transaksi ditunda.\n", 
+                                       cart->totalPrice - bayar);
+                            }
+                            pressEnterToContinue();
+                        }
+                    }
+                    else if (txChoice == 5) {
+                        clearCart(cart);
+                        clearStack(undoStack);
+                        free(cart);
+                        free(undoStack);
+                        printf("\nKembali ke Menu Utama. Sesi keranjang dibersihkan.\n");
+                        pressEnterToContinue();
+                    }
+
+                } while (txChoice != 5);
+                break;
+            }
+
+            case 4: { // ANTREAN PESANAN DAPUR (QUEUE)
                 int kitchenChoice;
                 do {
                     clearScreen();
-                    printf("\n");
+                    printf("===========================================\n");
+                    printf("        MANAJEMEN ANTREAN DAPUR (QUEUE)    \n");
+                    printf("===========================================\n");
 
-                    viewKitchenQueue(kitchenQueue);
+                    viewKitchenQueue(kitchenQueue); 
 
-                    printf("1. Lihat Antrean Pesanan\n");
-                    printf("2. Proses Pesanan Berikutnya\n");
-                    printf("3. Kembali ke Menu Utama\n");
-                    printf("Pilih opsi (1-3): ");
+                    printf("\nOpsi Dapur:\n");
+                    printf("1. Proses / Selesaikan Pesanan Terdepan (Dequeue)\n");
+                    printf("2. Kembali ke Menu Utama\n");
+                    printf("===========================================\n");
+                    printf("Pilih opsi (1-2): ");
                     scanf("%d", &kitchenChoice);
 
                     if (kitchenChoice == 1) {
-                        viewKitchenQueue(kitchenQueue);
-                        pressEnterToContinue();
-                    } else if (kitchenChoice == 2) {
-                        struct Order* nextOrder = dequeueOrder(kitchenQueue);
-                        if (nextOrder != NULL) {
-                            printf("Memproses pesanan untuk meja %d...\n", nextOrder->tableNumber);
-                            free(nextOrder);
-                        } else {
-                            printf("Tidak ada pesanan dalam antrean.\n");
-                        }
+                        printf("\nMemproses pesanan...\n");
+                        dequeueKitchen(kitchenQueue); 
                         pressEnterToContinue();
                     }
-                } while (kitchenChoice != 3);
+                    else if (kitchenChoice == 2) {
+                        printf("\nKembali ke Menu Utama.\n");
+                        pressEnterToContinue();
+                    }
+                    else {
+                        printf("\nPilihan tidak valid!\n");
+                        pressEnterToContinue();
+                    }
+                } while (kitchenChoice != 2);
                 break;
             }
-            case 5: {
+
+            case 5: { // MANAJEMEN DATA MENU (BST)
                 int bstChoice;
                 do {
                     clearScreen();
-                    printf("MANAJEMEN DATA KASIR\n");
-                    printf("1. Registrasi Kasir Baru (Insert BST)\n");
-                    printf("2. Cari Data Kasir Berdasarkan ID (Search BST)\n");
-                    printf("3. Tampilkan Semua Kasir Terurut (In-order Traversal)\n");
+                    printf("===========================================\n");
+                    printf("       MANAJEMEN DATA MENU POHON (BST)     \n");
+                    printf("===========================================\n");
+                    printf("1. Tambah Data Menu BST (Insert BST)\n");
+                    printf("2. Cari Data Menu BST (Search BST)\n");
+                    printf("3. Tampilkan Semua Menu Terurut (In-order Traversal)\n");
                     printf("4. Kembali ke Menu Utama\n");
+                    printf("===========================================\n");
                     printf("Pilih opsi (1-4): ");
                     scanf("%d", &bstChoice);
-                    
+
                     if (bstChoice == 1) {
                         int id;
-                        char name[50], shift[20];
-                        printf("Masukkan ID Kasir Baru (Angka): ");
+                        char name[50], category[20];
+                        float price;
+                        printf("Masukkan ID Menu Baru (Angka): ");
                         scanf("%d", &id);
-                        getchar(); // Bersihkan buffer newline
-                        
-                        printf("Masukkan Nama Kasir       : ");
+                        getchar(); 
+
+                        printf("Masukkan Nama Menu          : ");
                         fgets(name, sizeof(name), stdin);
-                        name[strcspn(name, "\n")] = 0; // Hapus newline
-                        
-                        printf("Masukkan Shift (Pagi/Siang/Malam): ");
-                        fgets(shift, sizeof(shift), stdin);
-                        shift[strcspn(shift, "\n")] = 0;
-                        
-                        bstRoot = insertCashier(bstRoot, id, name, shift);
-                        printf("\n[SUKSES] Kasir '%s' berhasil terdaftar di sistem!\n", name);
+                        name[strcspn(name, "\n")] = 0; 
+
+                        printf("Masukkan Kategori Menu      : ");
+                        fgets(category, sizeof(category), stdin);
+                        category[strcspn(category, "\n")] = 0;
+
+                        printf("Masukkan Harga Menu         : ");
+                        scanf("%f", &price);
+
+                        bstRoot = insertBST(bstRoot, id, name, category, price);
+                        printf("\n[SUKSES] Menu '%s' berhasil terdaftar di BST!\n", name);
                         pressEnterToContinue();
                     }
                     else if (bstChoice == 2) {
                         int id;
-                        printf("Masukkan ID Kasir yang dicari: ");
+                        printf("Masukkan ID Menu yang dicari: ");
                         scanf("%d", &id);
-                        
-                        struct Cashier* found = searchCashier(bstRoot, id);
+
+                        Node* found = searchBST(bstRoot, id);
                         if (found != NULL) {
-                            printf("\n--- DATA KASIR DITEMUKAN ---\n");
-                            printf("ID Kasir : %d\n", found->cashierId);
+                            printf("\n--- DATA MENU BST DITEMUKAN ---\n");
+                            printf("ID       : %d\n", found->id);
                             printf("Nama     : %s\n", found->name);
-                            printf("Shift    : %s\n", found->shift);
+                            printf("Kategori : %s\n", found->category);
+                            printf("Harga    : Rp %.2f\n", found->price);
                         } else {
-                            printf("\n[GAGAL] Kasir dengan ID %d tidak ditemukan.\n", id);
+                            printf("\n[GAGAL] Menu dengan ID %d tidak ditemukan.\n", id);
                         }
                         pressEnterToContinue();
                     }
                     else if (bstChoice == 3) {
-                        printf("\n=== DAFTAR KASIR (TERURUT BERDASARKAN ID) ===\n");
-                        printf("%-10s | %-25s | %-15s\n", "ID Kasir", "Nama Kasir", "Shift");
-                        printf("--------------------------------------------------------\n");
-                        
+                        printf("\n=== DAFTAR MENU POHON (TERURUT BERDASARKAN ID) ===\n");
+                        printf("%-10s | %-25s | %-15s | %-12s\n", "ID Menu", "Nama Menu", "Kategori", "Harga");
+                        printf("------------------------------------------------------------------------\n");
+
                         printInOrder(bstRoot); 
-                        
-                        printf("--------------------------------------------------------\n");
+
+                        printf("------------------------------------------------------------------------\n");
                         pressEnterToContinue();
                     }
                     else if (bstChoice == 4) {
@@ -310,17 +378,17 @@ int main() {
                 } while (bstChoice != 4);
                 break;
             }
-            
+
             case 6:
                 printf("\nKeluar dari aplikasi kasir. Terima kasih!\n");
                 break;
-                
+
             default:
                 printf("\nPilihan tidak valid! Silakan masukkan angka 1-6.\n");
                 pressEnterToContinue();
                 break;
         }
     } while (mainChoice != 6);
-    
+
     return 0;
-} 
+}

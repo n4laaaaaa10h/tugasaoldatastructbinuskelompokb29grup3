@@ -1,145 +1,109 @@
-#infdef QUEUE_H
+#ifndef QUEUE_H
 #define QUEUE_H
-
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "linked_list.h" // Kita butuh ini karena antrean menyimpan data keranjang belanja (OrderCart)
 
-typedef struct {
-    int orderID;
-    char menuName[50];
-    int quantity;
-    char status[20];
-    struct Order *next;
-} Order;
+// Node untuk menyimpan antrean pesanan dapur
+struct OrderTicket {
+    int ticketId;
+    struct OrderCart* cartDetails; // Menyimpan seluruh item pesanan dari kasir
+    struct OrderTicket* next;
+};
 
-//front and rear
-Order *front = NULL;
-Order *rear = NULL;
+// Struktur Utama Queue (FIFO)
+struct KitchenQueue {
+    struct OrderTicket* front;
+    struct OrderTicket* rear;
+    int totalQueueCount;
+};
 
-//create new order
-Order* createOrder(int orderID, char menuName[], int quantity) {
-    Order *newOrder = (Order*)malloc(sizeof(Order));
-    newOrder->orderID = orderID;
-    strcpy(newOrder->menuName, menuName);
-    newOrder->quantity = quantity;
-    strcpy(newOrder->status, "Waiting");
-    newOrder->next = NULL;
-    return newOrder;
+// Fungsi membuat Antrean Dapur baru yang kosong
+struct KitchenQueue* createQueue() {
+    struct KitchenQueue* q = (struct KitchenQueue*)malloc(sizeof(struct KitchenQueue));
+    q->front = NULL;
+    q->rear = NULL;
+    q->totalQueueCount = 0;
+    return q;
 }
 
-//enqueue order (insert)
-void enqueueOrder(int orderID, char menuName[], int quantity) {
-    Order *newOrder = createOrder(orderID, menuName, quantity);
+// 1. ENQUEUE: Memasukkan pesanan kasir yang sudah dibayar ke antrean dapur paling belakang
+void enqueueOrder(struct KitchenQueue* q, struct OrderCart* cart) {
+    if (cart == NULL || cart->head == NULL) return;
 
-    if (rear == NULL) {
-        front = rear = newOrder;
+    // Membuat tiket antrean baru
+    struct OrderTicket* newTicket = (struct OrderTicket*)malloc(sizeof(struct OrderTicket));
+    
+    // Alokasi keranjang baru khusus untuk dapur agar tidak hilang saat keranjang di main dibersihkan
+    newTicket->cartDetails = createCart();
+    struct CartItem* currItem = cart->head;
+    while (currItem != NULL) {
+        addToCart(newTicket->cartDetails, currItem->menuRef, currItem->quantity);
+        currItem = currItem->next;
+    }
+    
+    q->totalQueueCount++;
+    newTicket->ticketId = q->totalQueueCount;
+    newTicket->next = NULL;
+
+    // Jika antrean masih kosong
+    if (q->rear == NULL) {
+        q->front = newTicket;
+        q->rear = newTicket;
+    } else {
+        q->rear->next = newTicket;
+        q->rear = newTicket;
+    }
+    printf("Pesanan berhasil diteruskan ke Dapur! [Nomor Tiket Antrean: #%d]\n", newTicket->ticketId);
+}
+
+// 2. DEQUEUE: Mengeluarkan/menyelesaikan pesanan terdepan yang sudah selesai dimasak
+void dequeueKitchen(struct KitchenQueue* q) {
+    if (q->front == NULL) {
+        printf("Tidak ada antrean pesanan aktif di dapur saat ini.\n");
         return;
     }
 
-    rear->next = newOrder;
-    rear = newOrder;
-}
+    struct OrderTicket* temp = q->front;
+    printf("[SELESAI] Tiket Antrean #%d telah disajikan ke pelanggan!\n", temp->ticketId);
 
-//dequeue order (delete)
-void dequeueOrder() {
-    if (front == NULL) {
-        printf("No orders in kitchen queue.\n");
-        return;
+    // Geser pointer depan ke antrean berikutnya
+    q->front = q->front->next;
+
+    // Jika setelah digeser antrean menjadi kosong
+    if (q->front == NULL) {
+        q->rear = NULL;
     }
 
-    Order *temp = front;
-    printf("Order Completed:\n");
-    printf("ID: %d | Menu: %s | Qty: %d\n",
-           temp->orderID, temp->menuName, temp->quantity);
-
-    front = front->next;
+    // Bebaskan memori tiket dan isi keranjang belanja di dalamnya
+    clearCart(temp->cartDetails);
+    free(temp->cartDetails);
     free(temp);
-
-    if (front == NULL)
-        rear = NULL;
 }
 
-//display queue
-void displayKitchenQueue() {
-    if (front == NULL) {
-        printf("Kitchen queue is empty.\n");
+// 3. READ/VIEW: Melihat daftar antrean pesanan aktif yang harus dimasak dapur
+void viewKitchenQueue(struct KitchenQueue* q) {
+    if (q->front == NULL) {
+        printf("[INFO] Dapur Bersih! Belum ada antrean pesanan masuk.\n");
         return;
     }
 
-    Order *temp = front;
-    printf("\n--- ANTRIAN PESANAN DAPUR ---\n");
-    while (temp != NULL) {
-        printf("ID: %d | Menu: %s | Qty: %d | Status: %s\n",
-               temp->orderID,
-               temp->menuName,
-               temp->quantity,
-               temp->status);
-        temp = temp->next;
-    }
-}
-
-//status update
-void startCooking() {
-    if (front == NULL) {
-        printf("No order to cook.\n");
-        return;
-    }
-
-    strcpy(front->status, "Cooking");
-    printf("Now Cooking:\n");
-    printf("ID: %d | Menu: %s\n",
-           front->orderID, front->menuName);
-}
-
-//main
-int main() {
-    int choice, orderID, quantity;
-    char menuName[50];
-
-    do {
-        printf("\nSISTEM ANTRIAN DAPUR\n");
-        printf("1. Tambah Pesanan \n");
-        printf("2. Mulai Masak Pesanan Terdepan\n");
-        printf("3. Pesanan Selesai (Dequeue)\n");
-        printf("4. Lihat Antrian Dapur\n");
-        printf("5. Keluar\n");
-        printf("Pilih: ");
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case 1:
-                printf("Order ID: ");
-                scanf("%d", &orderID);
-                printf("Nama Menu: ");
-                scanf(" %[^\n]", menuName);
-                printf("Jumlah: ");
-                scanf("%d", &quantity);
-                enqueueOrder(orderID, menuName, quantity);
-                printf("Pesanan masuk antrian dapur.\n");
-                break;
-
-            case 2:
-                startCooking();
-                break;
-
-            case 3:
-                dequeueOrder();
-                break;
-
-            case 4:
-                displayKitchenQueue();
-                break;
-
-            case 5:
-                printf("Sistem dapur ditutup.\n");
-                break;
-
-            default:
-                printf("Pilihan tidak valid.\n");
+    printf("Daftar Antrean Dapur Aktif:\n");
+    struct OrderTicket* currTicket = q->front;
+    while (currTicket != NULL) {
+        printf("\n----------------------------------------\n");
+        printf(" TIKET PESANAN #%d\n", currTicket->ticketId);
+        printf("----------------------------------------\n");
+        
+        struct CartItem* item = currTicket->cartDetails->head;
+        while (item != NULL) {
+            printf("- %d x %s\n", item->quantity, item->menuRef->name);
+            item = item->next;
         }
-    } while (choice != 5);
-
-    return 0;
+        currTicket = currTicket->next;
+    }
+    printf("\n----------------------------------------\n");
 }
+
+#endif
