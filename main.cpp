@@ -3,13 +3,13 @@
 #include <string.h>
 #include <stdbool.h>
 
-// Menghubungkan ke semua file header struktur data kelompok
-#include "hash_table.h"
-#include "trie.h"
-#include "linked_list.h"
-#include "stack.h"
-#include "queue.h"
-#include "bst.h"
+
+#include "sources/hash_table.h"
+#include "sources/trie.h"
+#include "sources/linked_list.h"
+#include "sources/stack.h"
+#include "sources/queue.h"
+#include "sources/bst.h"
 
 // Fungsi pembantu untuk membersihkan layar console
 void clearScreen() {
